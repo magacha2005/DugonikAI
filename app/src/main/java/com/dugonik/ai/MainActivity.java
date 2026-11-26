@@ -1,7 +1,9 @@
+
 package com.dugonik.ai;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.view.Gravity;
 import android.text.InputType;
@@ -13,15 +15,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 
 public class MainActivity extends Activity {
-
     LinearLayout messages;
     EditText input, apiKey;
     JSONArray history = new JSONArray();
+    SharedPreferences prefs;
     ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        prefs = getSharedPreferences("dugonik_memory", MODE_PRIVATE);
+        history = loadHistory();
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -48,11 +53,23 @@ public class MainActivity extends Activity {
         messages = new LinearLayout(this);
         messages.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(messages);
+        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
 
-        root.addView(scroll, new LinearLayout.LayoutParams(
-                -1, 0, 1));
+        if (history.length() == 0) {
+            addMessage("Салом! Ман ДУГОНИК AI ҳастам. ❤️", false);
+        } else {
+            for (int i = 0; i < history.length(); i++) {
+                JSONObject item = history.optJSONObject(i);
+                if (item == null) continue;
 
-        addMessage("Салом! Ман ДУГОНИК AI ҳастам. ❤️", false);
+                String role = item.optString("role");
+                if (role.equals("user") || role.equals("assistant")) {
+                    addMessage(item.optString("content"),
+                            role.equals("user"));
+                }
+            }
+            scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+        }
 
         LinearLayout bottom = new LinearLayout(this);
         bottom.setOrientation(LinearLayout.HORIZONTAL);
@@ -87,9 +104,9 @@ public class MainActivity extends Activity {
                     JSONObject system = new JSONObject();
                     system.put("role", "system");
                     system.put("content",
-                        "Ту ДУГОНИК AI ҳастӣ, дугоники меҳрубон ва самимӣ. " +
-                        "Ҳамеша бо забони тоҷикӣ ҷавоб деҳ. " +
-                        "Ҷавобҳоят равшан ва дӯстона бошанд.");
+                            "Ту ДУГОНИК AI ҳастӣ, дугоники меҳрубон ва самимӣ. " +
+                            "Ҳамеша бо забони тоҷикӣ ҷавоб деҳ. " +
+                            "Ҷавобҳоят равшан ва дӯстона бошанд.");
                     history.put(system);
                 }
 
@@ -97,6 +114,7 @@ public class MainActivity extends Activity {
                 user.put("role", "user");
                 user.put("content", question);
                 history.put(user);
+                saveHistory();
 
                 JSONObject body = new JSONObject();
                 body.put("model", "openai/gpt-oss-120b");
@@ -117,6 +135,7 @@ public class MainActivity extends Activity {
                             reply.put("role", "assistant");
                             reply.put("content", answer);
                             history.put(reply);
+                            saveHistory();
                         } catch (Exception ignored) {}
 
                         send.setEnabled(true);
@@ -133,12 +152,24 @@ public class MainActivity extends Activity {
         setContentView(root);
     }
 
+    JSONArray loadHistory() {
+        try {
+            return new JSONArray(prefs.getString("history", "[]"));
+        } catch (Exception e) {
+            return new JSONArray();
+        }
+    }
+
+    void saveHistory() {
+        prefs.edit().putString("history", history.toString()).apply();
+    }
+
     String askGroq(String key, String body) {
         HttpURLConnection connection = null;
 
         try {
             URL url = new URL(
-                "https://api.groq.com/openai/v1/chat/completions"
+                    "https://api.groq.com/openai/v1/chat/completions"
             );
 
             connection = (HttpURLConnection) url.openConnection();
@@ -146,11 +177,12 @@ public class MainActivity extends Activity {
             connection.setConnectTimeout(20000);
             connection.setReadTimeout(60000);
             connection.setDoOutput(true);
+
             connection.setRequestProperty(
-                "Content-Type", "application/json"
+                    "Content-Type", "application/json"
             );
             connection.setRequestProperty(
-                "Authorization", "Bearer " + key
+                    "Authorization", "Bearer " + key
             );
 
             try (OutputStream os = connection.getOutputStream()) {
@@ -176,9 +208,11 @@ public class MainActivity extends Activity {
             JSONObject json = new JSONObject(response);
 
             if (code < 200 || code >= 300) {
-                return "Хатои Groq (" + code + "): " +
-                    json.optJSONObject("error")
-                        .optString("message", "Номаълум");
+                JSONObject error = json.optJSONObject("error");
+                String message = error != null
+                        ? error.optString("message", "Номаълум")
+                        : "Номаълум";
+                return "Хатои Groq (" + code + "): " + message;
             }
 
             return json.getJSONArray("choices")
@@ -200,12 +234,12 @@ public class MainActivity extends Activity {
         message.setTextColor(Color.WHITE);
         message.setPadding(14, 12, 14, 12);
         message.setBackgroundColor(
-            mine ? Color.rgb(35, 100, 180)
-                 : Color.rgb(55, 65, 85)
+                mine ? Color.rgb(35, 100, 180)
+                     : Color.rgb(55, 65, 85)
         );
 
         LinearLayout.LayoutParams params =
-            new LinearLayout.LayoutParams(-2, -2);
+                new LinearLayout.LayoutParams(-2, -2);
         params.setMargins(5, 8, 5, 8);
         params.gravity = mine ? Gravity.RIGHT : Gravity.LEFT;
 
