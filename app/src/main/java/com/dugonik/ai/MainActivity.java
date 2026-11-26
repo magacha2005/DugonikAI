@@ -133,9 +133,13 @@ public class MainActivity extends Activity {
         }
 
         LinearLayout bottom = new LinearLayout(this);
-        bottom.setGravity(Gravity.CENTER_VERTICAL);
-        bottom.setPadding(8, 5, 8, 5);
-        bottom.setBackground(shape(panel, 25));
+        bottom.setOrientation(LinearLayout.VERTICAL);
+        bottom.setPadding(4, 5, 4, 5);
+
+        LinearLayout inputBox = new LinearLayout(this);
+        inputBox.setGravity(Gravity.CENTER_VERTICAL);
+        inputBox.setPadding(14, 5, 14, 5);
+        inputBox.setBackground(shape(panel, 22));
 
         input = new EditText(this);
         input.setHint("Ба ман навис...");
@@ -145,26 +149,48 @@ public class MainActivity extends Activity {
         input.setSingleLine(false);
         input.setMaxLines(4);
         input.setBackgroundColor(Color.TRANSPARENT);
+        inputBox.addView(input, new LinearLayout.LayoutParams(-1, -2));
 
-        bottom.addView(input, new LinearLayout.LayoutParams(0, -2, 1));
+        bottom.addView(inputBox, new LinearLayout.LayoutParams(-1, -2));
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setGravity(Gravity.CENTER);
+        actions.setPadding(0, 8, 0, 0);
 
         Button mic = new Button(this);
         mic.setText("🎤");
         mic.setTextSize(20);
         mic.setTextColor(Color.WHITE);
         mic.setBackground(shape(panel, 50));
-        LinearLayout.LayoutParams micParams = new LinearLayout.LayoutParams(55, 55);
-        micParams.rightMargin = 6;
-        bottom.addView(mic, micParams);
+        actions.addView(mic, new LinearLayout.LayoutParams(55, 55));
         mic.setOnClickListener(v -> startVoiceInput());
+
+        Button voice = new Button(this);
+        voice.setText("🎧");
+        voice.setTextSize(20);
+        voice.setTextColor(Color.WHITE);
+        voice.setBackground(shape(panel, 50));
+        LinearLayout.LayoutParams voiceParams =
+                new LinearLayout.LayoutParams(55, 55);
+        voiceParams.leftMargin = 18;
+        voiceParams.rightMargin = 18;
+        actions.addView(voice, voiceParams);
+        voice.setOnClickListener(v ->
+                Toast.makeText(this,
+                        "Овози зинда дар қадами оянда фаъол мешавад.",
+                        Toast.LENGTH_SHORT).show());
+
         Button send = new Button(this);
         send.setText("➤");
         send.setTextSize(23);
         send.setTextColor(Color.WHITE);
         send.setBackground(shape(blue, 50));
-        bottom.addView(send, new LinearLayout.LayoutParams(55, 55));
+        actions.addView(send, new LinearLayout.LayoutParams(55, 55));
 
-        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, -2);
+        bottom.addView(actions);
+
+        LinearLayout.LayoutParams bp =
+                new LinearLayout.LayoutParams(-1, -2);
         bp.topMargin = 8;
         root.addView(bottom, bp);
 
