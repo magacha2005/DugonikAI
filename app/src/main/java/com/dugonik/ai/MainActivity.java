@@ -133,48 +133,48 @@ public class MainActivity extends Activity {
         }
 
         LinearLayout bottom = new LinearLayout(this);
-        bottom.setOrientation(LinearLayout.VERTICAL);
-        bottom.setPadding(4, 5, 4, 5);
-
-        LinearLayout inputBox = new LinearLayout(this);
-        inputBox.setGravity(Gravity.CENTER_VERTICAL);
-        inputBox.setPadding(14, 5, 14, 5);
-        inputBox.setBackground(shape(panel, 22));
+        bottom.setGravity(Gravity.CENTER_VERTICAL);
+        bottom.setPadding(8, 5, 8, 5);
+        bottom.setBackground(shape(panel, 25));
 
         input = new EditText(this);
         input.setHint("Ба ман навис...");
         input.setTextColor(Color.WHITE);
         input.setHintTextColor(Color.LTGRAY);
-        input.setTextSize(16);
+        input.setTextSize(15);
         input.setSingleLine(false);
-        input.setMaxLines(4);
+        input.setMaxLines(3);
         input.setBackgroundColor(Color.TRANSPARENT);
-        inputBox.addView(input, new LinearLayout.LayoutParams(-1, -2));
-
-        bottom.addView(inputBox, new LinearLayout.LayoutParams(-1, -2));
-
-        LinearLayout actions = new LinearLayout(this);
-        actions.setGravity(Gravity.CENTER);
-        actions.setPadding(0, 8, 0, 0);
+        bottom.addView(input, new LinearLayout.LayoutParams(0, -2, 1));
 
         Button mic = new Button(this);
         mic.setText("🎤");
-        mic.setTextSize(20);
+        mic.setTextSize(18);
+        mic.setAllCaps(false);
         mic.setTextColor(Color.WHITE);
-        mic.setBackground(shape(panel, 50));
-        actions.addView(mic, new LinearLayout.LayoutParams(55, 55));
+        mic.setMinWidth(0);
+        mic.setMinHeight(0);
+        mic.setPadding(0, 0, 0, 0);
+        mic.setBackground(shape(bg, 50));
+        LinearLayout.LayoutParams micParams =
+                new LinearLayout.LayoutParams(46, 46);
+        micParams.leftMargin = 3;
+        bottom.addView(mic, micParams);
         mic.setOnClickListener(v -> startVoiceInput());
 
         Button voice = new Button(this);
         voice.setText("🎧");
-        voice.setTextSize(20);
+        voice.setTextSize(18);
+        voice.setAllCaps(false);
         voice.setTextColor(Color.WHITE);
-        voice.setBackground(shape(panel, 50));
+        voice.setMinWidth(0);
+        voice.setMinHeight(0);
+        voice.setPadding(0, 0, 0, 0);
+        voice.setBackground(shape(bg, 50));
         LinearLayout.LayoutParams voiceParams =
-                new LinearLayout.LayoutParams(55, 55);
-        voiceParams.leftMargin = 18;
-        voiceParams.rightMargin = 18;
-        actions.addView(voice, voiceParams);
+                new LinearLayout.LayoutParams(46, 46);
+        voiceParams.leftMargin = 3;
+        bottom.addView(voice, voiceParams);
         voice.setOnClickListener(v ->
                 Toast.makeText(this,
                         "Овози зинда дар қадами оянда фаъол мешавад.",
@@ -182,12 +182,17 @@ public class MainActivity extends Activity {
 
         Button send = new Button(this);
         send.setText("➤");
-        send.setTextSize(23);
+        send.setTextSize(22);
+        send.setAllCaps(false);
         send.setTextColor(Color.WHITE);
+        send.setMinWidth(0);
+        send.setMinHeight(0);
+        send.setPadding(0, 0, 0, 0);
         send.setBackground(shape(blue, 50));
-        actions.addView(send, new LinearLayout.LayoutParams(55, 55));
-
-        bottom.addView(actions);
+        LinearLayout.LayoutParams sendParams =
+                new LinearLayout.LayoutParams(46, 46);
+        sendParams.leftMargin = 3;
+        bottom.addView(send, sendParams);
 
         LinearLayout.LayoutParams bp =
                 new LinearLayout.LayoutParams(-1, -2);
