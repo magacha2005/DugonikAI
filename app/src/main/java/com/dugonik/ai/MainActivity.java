@@ -99,7 +99,7 @@ public class MainActivity extends Activity {
                 history.put(user);
 
                 JSONObject body = new JSONObject();
-                body.put("model", "llama-3.3-70b-versatile");
+                body.put("model", "openai/gpt-oss-120b");
                 body.put("messages", history);
                 body.put("temperature", 0.7);
                 body.put("max_tokens", 700);
