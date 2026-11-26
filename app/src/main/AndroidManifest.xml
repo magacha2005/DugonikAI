@@ -6,6 +6,8 @@
     <application
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:label="ДУГОНИК AI"
+        android:icon="@drawable/dugonik_icon"
+        android:roundIcon="@drawable/dugonik_icon"
         android:allowBackup="true">
 
         <activity
