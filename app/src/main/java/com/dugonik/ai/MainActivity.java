@@ -5,9 +5,13 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
-import android.text.InputType;
+import android.view.View;
 import android.widget.*;
+import android.text.InputType;
+import android.content.res.ColorStateList;
 import org.json.*;
 import java.net.*;
 import java.io.*;
@@ -15,30 +19,72 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 
 public class MainActivity extends Activity {
+
     LinearLayout messages;
     EditText input, apiKey;
+    ScrollView scroll;
     JSONArray history = new JSONArray();
     SharedPreferences prefs;
     ExecutorService executor = Executors.newSingleThreadExecutor();
 
+    int bg = Color.rgb(5, 10, 32);
+    int panel = Color.rgb(14, 24, 52);
+    int blue = Color.rgb(25, 110, 210);
+    int cyan = Color.rgb(65, 220, 255);
+
+    GradientDrawable shape(int color, int radius) {
+        GradientDrawable d = new GradientDrawable();
+        d.setColor(color);
+        d.setCornerRadius(radius);
+        return d;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getWindow().setStatusBarColor(bg);
+        getWindow().setNavigationBarColor(bg);
 
         prefs = getSharedPreferences("dugonik_memory", MODE_PRIVATE);
         history = loadHistory();
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(16, 16, 16, 16);
-        root.setBackgroundColor(Color.rgb(20, 25, 40));
+        root.setBackgroundColor(bg);
+        root.setPadding(12, 8, 12, 8);
+
+        LinearLayout header = new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(10, 10, 10, 10);
+        header.setBackground(shape(panel, 24));
+
+        ImageView avatar = new ImageView(this);
+        avatar.setImageResource(R.drawable.dugonik_profile);
+        avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+        LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(65, 65);
+        ap.rightMargin = 12;
+        header.addView(avatar, ap);
+
+        LinearLayout names = new LinearLayout(this);
+        names.setOrientation(LinearLayout.VERTICAL);
 
         TextView title = new TextView(this);
         title.setText("ДУГОНИК AI ❤️");
-        title.setTextSize(26);
+        title.setTextSize(21);
         title.setTextColor(Color.WHITE);
-        title.setGravity(Gravity.CENTER);
-        root.addView(title);
+        title.setTypeface(null, Typeface.BOLD);
+        names.addView(title);
+
+        TextView online = new TextView(this);
+        online.setText("● Ҳамеша дар паҳлӯи ту");
+        online.setTextSize(13);
+        online.setTextColor(cyan);
+        names.addView(online);
+
+        header.addView(names, new LinearLayout.LayoutParams(0, -2, 1));
+        root.addView(header);
 
         apiKey = new EditText(this);
         apiKey.setSingleLine(true);
@@ -47,42 +93,62 @@ public class MainActivity extends Activity {
         apiKey.setHintTextColor(Color.LTGRAY);
         apiKey.setInputType(InputType.TYPE_CLASS_TEXT |
                 InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        root.addView(apiKey);
+        apiKey.setPadding(16, 8, 16, 8);
+        apiKey.setBackground(shape(panel, 18));
 
-        ScrollView scroll = new ScrollView(this);
+        LinearLayout.LayoutParams kp = new LinearLayout.LayoutParams(-1, -2);
+        kp.topMargin = 10;
+        root.addView(apiKey, kp);
+
+        scroll = new ScrollView(this);
         messages = new LinearLayout(this);
         messages.setOrientation(LinearLayout.VERTICAL);
+        messages.setPadding(4, 12, 4, 12);
         scroll.addView(messages);
-        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+
+        LinearLayout.LayoutParams mp = new LinearLayout.LayoutParams(-1, 0, 1);
+        mp.topMargin = 8;
+        root.addView(scroll, mp);
 
         if (history.length() == 0) {
-            addMessage("Салом! Ман ДУГОНИК AI ҳастам. ❤️", false);
+            addMessage("Салом! Ман ДУГОНИК AI ҳастам. ❤️\nҲамеша дар паҳлӯи ту!", false);
         } else {
             for (int i = 0; i < history.length(); i++) {
                 JSONObject item = history.optJSONObject(i);
                 if (item == null) continue;
-
                 String role = item.optString("role");
                 if (role.equals("user") || role.equals("assistant")) {
-                    addMessage(item.optString("content"),
-                            role.equals("user"));
+                    addMessage(item.optString("content"), role.equals("user"));
                 }
             }
-            scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
         }
 
         LinearLayout bottom = new LinearLayout(this);
-        bottom.setOrientation(LinearLayout.HORIZONTAL);
+        bottom.setGravity(Gravity.CENTER_VERTICAL);
+        bottom.setPadding(8, 5, 8, 5);
+        bottom.setBackground(shape(panel, 25));
 
         input = new EditText(this);
         input.setHint("Ба ман навис...");
         input.setTextColor(Color.WHITE);
         input.setHintTextColor(Color.LTGRAY);
+        input.setTextSize(16);
+        input.setSingleLine(false);
+        input.setMaxLines(4);
+        input.setBackgroundColor(Color.TRANSPARENT);
+
         bottom.addView(input, new LinearLayout.LayoutParams(0, -2, 1));
 
         Button send = new Button(this);
-        send.setText("Фирист");
-        bottom.addView(send);
+        send.setText("➤");
+        send.setTextSize(23);
+        send.setTextColor(Color.WHITE);
+        send.setBackground(shape(blue, 50));
+        bottom.addView(send, new LinearLayout.LayoutParams(55, 55));
+
+        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, -2);
+        bp.topMargin = 8;
+        root.addView(bottom, bp);
 
         send.setOnClickListener(v -> {
             String question = input.getText().toString().trim();
@@ -148,8 +214,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        root.addView(bottom);
         setContentView(root);
+        scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
     }
 
     JSONArray loadHistory() {
@@ -168,29 +234,21 @@ public class MainActivity extends Activity {
         HttpURLConnection connection = null;
 
         try {
-            URL url = new URL(
-                    "https://api.groq.com/openai/v1/chat/completions"
-            );
-
+            URL url = new URL("https://api.groq.com/openai/v1/chat/completions");
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setConnectTimeout(20000);
             connection.setReadTimeout(60000);
             connection.setDoOutput(true);
 
-            connection.setRequestProperty(
-                    "Content-Type", "application/json"
-            );
-            connection.setRequestProperty(
-                    "Authorization", "Bearer " + key
-            );
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Authorization", "Bearer " + key);
 
             try (OutputStream os = connection.getOutputStream()) {
                 os.write(body.getBytes(StandardCharsets.UTF_8));
             }
 
             int code = connection.getResponseCode();
-
             InputStream stream = code >= 200 && code < 300
                     ? connection.getInputStream()
                     : connection.getErrorStream();
@@ -232,18 +290,22 @@ public class MainActivity extends Activity {
         message.setText(text);
         message.setTextSize(16);
         message.setTextColor(Color.WHITE);
-        message.setPadding(14, 12, 14, 12);
-        message.setBackgroundColor(
-                mine ? Color.rgb(35, 100, 180)
-                     : Color.rgb(55, 65, 85)
-        );
+        message.setPadding(16, 12, 16, 12);
+        message.setBackground(shape(
+                mine ? blue : panel, 22));
 
         LinearLayout.LayoutParams params =
-                new LinearLayout.LayoutParams(-2, -2);
-        params.setMargins(5, 8, 5, 8);
+                new LinearLayout.LayoutParams(
+                        -2, -2);
+        params.setMargins(5, 7, 5, 7);
         params.gravity = mine ? Gravity.RIGHT : Gravity.LEFT;
+        params.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.78);
 
         messages.addView(message, params);
+
+        if (scroll != null) {
+            scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+        }
     }
 
     @Override
