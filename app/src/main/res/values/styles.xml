@@ -1,0 +1,7 @@
+<resources>
+    <style name="SplashTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#050823</item>
+        <item name="android:statusBarColor">#050823</item>
+        <item name="android:navigationBarColor">#050823</item>
+    </style>
+</resources>
