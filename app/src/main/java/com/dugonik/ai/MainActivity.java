@@ -158,7 +158,7 @@ public class MainActivity extends Activity {
         mic.setBackground(shape(bg, 50));
         LinearLayout.LayoutParams micParams =
                 new LinearLayout.LayoutParams(46, 46);
-        micParams.leftMargin = 3;
+        micParams.leftMargin = 8;
         bottom.addView(mic, micParams);
         mic.setOnClickListener(v -> startVoiceInput());
 
@@ -173,7 +173,7 @@ public class MainActivity extends Activity {
         voice.setBackground(shape(bg, 50));
         LinearLayout.LayoutParams voiceParams =
                 new LinearLayout.LayoutParams(46, 46);
-        voiceParams.leftMargin = 3;
+        voiceParams.leftMargin = 8;
         bottom.addView(voice, voiceParams);
         voice.setOnClickListener(v ->
                 Toast.makeText(this,
@@ -191,7 +191,7 @@ public class MainActivity extends Activity {
         send.setBackground(shape(blue, 50));
         LinearLayout.LayoutParams sendParams =
                 new LinearLayout.LayoutParams(46, 46);
-        sendParams.leftMargin = 3;
+        sendParams.leftMargin = 8;
         bottom.addView(send, sendParams);
 
         LinearLayout.LayoutParams bp =
