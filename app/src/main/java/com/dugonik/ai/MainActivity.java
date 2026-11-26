@@ -2,6 +2,13 @@
 package com.dugonik.ai;
 
 import android.app.Activity;
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.speech.RecognitionListener;
+import java.util.ArrayList;
 import android.os.Bundle;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -26,6 +33,8 @@ public class MainActivity extends Activity {
     JSONArray history = new JSONArray();
     SharedPreferences prefs;
     ExecutorService executor = Executors.newSingleThreadExecutor();
+    SpeechRecognizer speechRecognizer;
+    boolean isListening = false;
 
     int bg = Color.rgb(5, 10, 32);
     int panel = Color.rgb(14, 24, 52);
@@ -139,6 +148,15 @@ public class MainActivity extends Activity {
 
         bottom.addView(input, new LinearLayout.LayoutParams(0, -2, 1));
 
+        Button mic = new Button(this);
+        mic.setText("🎤");
+        mic.setTextSize(20);
+        mic.setTextColor(Color.WHITE);
+        mic.setBackground(shape(panel, 50));
+        LinearLayout.LayoutParams micParams = new LinearLayout.LayoutParams(55, 55);
+        micParams.rightMargin = 6;
+        bottom.addView(mic, micParams);
+        mic.setOnClickListener(v -> startVoiceInput());
         Button send = new Button(this);
         send.setText("➤");
         send.setTextSize(23);
@@ -216,6 +234,71 @@ public class MainActivity extends Activity {
 
         setContentView(root);
         scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+    }
+
+
+    void startVoiceInput() {
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            addMessage("Хидмати шинохтани овоз дар ин телефон дастрас нест.", false);
+            return;
+        }
+
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                    new String[]{Manifest.permission.RECORD_AUDIO}, 101);
+            return;
+        }
+
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy();
+        }
+
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+
+        speechRecognizer.setRecognitionListener(new RecognitionListener() {
+            public void onReadyForSpeech(Bundle params) {
+                addMessage("Мешунавам... гап зан 🎤", false);
+            }
+            public void onBeginningOfSpeech() {}
+            public void onRmsChanged(float rmsdB) {}
+            public void onBufferReceived(byte[] buffer) {}
+            public void onEndOfSpeech() {}
+            public void onError(int error) {
+                addMessage("Овоз шинохта нашуд. Боз кӯшиш кун.", false);
+            }
+            public void onResults(Bundle results) {
+                ArrayList<String> words =
+                        results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                if (words != null && !words.isEmpty()) {
+                    input.setText(words.get(0));
+                    input.setSelection(input.getText().length());
+                }
+            }
+            public void onPartialResults(Bundle results) {}
+            public void onEvent(int eventType, Bundle params) {}
+        });
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "tg-TJ");
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "tg-TJ");
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false);
+
+        speechRecognizer.startListening(intent);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+            String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 101 && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startVoiceInput();
+        } else if (requestCode == 101) {
+            addMessage("Барои истифодаи микрофон иҷозат лозим аст.", false);
+        }
     }
 
     JSONArray loadHistory() {
@@ -311,6 +394,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         executor.shutdownNow();
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy();
+            speechRecognizer = null;
+        }
         super.onDestroy();
     }
 }
